@@ -9,7 +9,10 @@ fn main() {
 
 
     let flex = group::Flex::default().with_size(400, 500).column().size_of_parent(); 
-    let label = frame::Frame::default().with_label("Check this text:");
+    let inside_flex = group::Flex::default().with_size(400, 500).row().size_of_parent(); 
+    let _labell = frame::Frame::default().with_label("Check this text:");
+    let _label = frame::Frame::default().with_label("hello");
+    inside_flex.end();
     let mut input = input::Input::default();
     
     //note that the trigger should be only one 
