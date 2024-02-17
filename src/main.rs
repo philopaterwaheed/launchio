@@ -1,6 +1,5 @@
 use fltk::{prelude::*, *,enums::*,frame::Frame};
 use std::env;
-use std::ffi::OsStr;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
 use std::os::unix::fs::PermissionsExt;
@@ -13,35 +12,43 @@ fn main() {
     let app = app::App::default();
     // app::set_background_color(3,5,20);
     let mut wind = window::Window::default()
-        .with_size(1000,300)
+        .with_size(700,400)
         .center_screen()
         .with_label("app_luncher");
 
+    let mut input = input::Input::default();
+    input.set_size(50, 50);
 
-    let flex = group::Flex::default().with_size(400, 500).column().size_of_parent(); // the outter flex 
-    let inside_flex = group::Flex::default().with_size(400, 500).row().size_of_parent(); // a flexfor name adn image
+    let mut flex = group::Flex::default().with_size(601, 500).column().size_of_parent(); // the outter flex 
+    let inside_flex = group::Flex::default().with_size(400, 400).row();
 
 
-    let mut image = image::JpegImage::load("img.jpg").unwrap();
-    let mut imagee = image::JpegImage::load("img.jpg").unwrap();
+    let mut image = image::JpegImage::load("./nar.jpg").unwrap();
+    let mut imagee = image::JpegImage::load("./sas.jpg").unwrap();
 
-    let mut frame = Frame::default().with_size(560, 260).with_pos(0,0);
+    let mut frame = Frame::default().size_of_parent();
     frame.set_frame(FrameType::OFlatFrame); // Remove the frame around the image
-    image.scale(400, 200, true, true);
+    image.scale(600, 200, true, true);
     frame.set_image(Some(image));
+    
+    let mut _app_name_label = frame::Frame::default().with_label("launchio").set_color(Color::from_rgb(0,0,0));
+
     let mut frame = Frame::default().with_size(560, 260).with_pos(0,0);
     frame.set_frame(FrameType::OFlatFrame); // Remove the frame around the image
     imagee.scale(400, 200, true, true);
     frame.set_image(Some(imagee));
 
 
-    let mut _app_name_label = frame::Frame::default().with_label("launchio").set_color(Color::from_rgb(0,0,0));
-
     inside_flex.end();
 
 
 
-    let mut input = input::Input::default();
+    flex.add_resizable(&input);
+    flex.fixed(&mut input, 30);
+    input.set_size(601,50);
+    flex.recalc();
+    flex.layout();
+
     //note that the trigger should be only one 
     input.set_trigger(enums::CallbackTrigger::Changed|enums::CallbackTrigger::EnterKey);// it makes the input hijacks focus and 
     // input.set_trigger(enums::CallbackTrigger::Focus);
@@ -87,7 +94,7 @@ fn main() {
 }
 fn get_executables ()-> Vec<String> {
     let mut executables:Vec<String> = Vec :: new () ; 
-    if let Some(paths) = env::var_os("PATH") {
+    if let Some(paths) = env::var_os("PATH") {// get the path from the var PATH
         // Split the PATH into individual directories
         for path in env::split_paths(&paths) {
             // Iterate over files in the directory
