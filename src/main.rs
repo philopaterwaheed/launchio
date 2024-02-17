@@ -3,12 +3,12 @@ use std::env;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
 use std::os::unix::fs::PermissionsExt;
-
+use rust_fuzzy_search::{fuzzy_compare , fuzzy_search,fuzzy_search_sorted};
 
 
 fn main() {
 
-    let mut executables:Vec<String> = get_executables() ; // get all the exes in the system
+   let mut executables:Vec<String> = get_executables() ; // get all the exes in the system
     let app = app::App::default();
     // app::set_background_color(3,5,20);
     let mut wind = window::Window::default()
@@ -17,7 +17,6 @@ fn main() {
         .with_label("app_luncher");
 
     let mut input = input::Input::default();
-    input.set_size(50, 50);
 
     let mut flex = group::Flex::default().with_size(601, 500).column().size_of_parent(); // the outter flex 
     let inside_flex = group::Flex::default().with_size(400, 400).row();
@@ -31,7 +30,7 @@ fn main() {
     image.scale(600, 200, true, true);
     frame.set_image(Some(image));
     
-    let mut _app_name_label = frame::Frame::default().with_label("launchio").set_color(Color::from_rgb(0,0,0));
+    let mut _app_name_label = frame::Frame::default().with_label("launchio\nby philo").set_color(Color::from_rgb(0,0,0));
 
     let mut frame = Frame::default().with_size(560, 260).with_pos(0,0);
     frame.set_frame(FrameType::OFlatFrame); // Remove the frame around the image
@@ -45,9 +44,6 @@ fn main() {
 
     flex.add_resizable(&input);
     flex.fixed(&mut input, 30);
-    input.set_size(601,50);
-    flex.recalc();
-    flex.layout();
 
     //note that the trigger should be only one 
     input.set_trigger(enums::CallbackTrigger::Changed|enums::CallbackTrigger::EnterKey);// it makes the input hijacks focus and 
@@ -55,10 +51,6 @@ fn main() {
 
     let mut output = browser::SelectBrowser::new(10, 10, 900 - 20, 300 - 20, "");
 
-//    output.set_value("You can't edit this!");
-    output.add("USER\tPID\t%CPU\t%MEM\tVSZ\tRSS\tTTY\tSTAT\tSTART\tTIME\tCOMMAND");
-    output.add("USER\tPID\t%CPU\t%MEM\tVSZ\tRSS\tTTY\tSTAT\tSTART\tTIME\tCOMMAND");
-    output.select(2);
 
 
 
@@ -77,11 +69,14 @@ fn main() {
         false
 
     });
-    // input.set_callback( move | input| { // the call back when enter is pressed 
-    //     // input.set_readonly(true);
-    //     output.set_value("philo");
-    //
-    // });
+    input.set_callback( |output_clone| { // the call back when enter is pressed 
+        let x = input.value().clone().as_str();
+        let outs = find_exe(x,&executables);
+        for  out in &outs{
+            output.add(out);
+        }
+
+    });
 
 
     flex.end();
@@ -90,7 +85,7 @@ fn main() {
     wind.show();
     app.run().unwrap();
 
-       // Get the value of the PATH environment variable
+
 }
 fn get_executables ()-> Vec<String> {
     let mut executables:Vec<String> = Vec :: new () ; 
@@ -117,10 +112,10 @@ fn get_executables ()-> Vec<String> {
             }
         }
     } 
-    for str in &executables
-    {
-        println!("{}" ,str);
-    }
+    // for str in &executables
+    // {
+    //     println!("{}" ,str);
+    // }
     executables
 
 }
@@ -132,4 +127,14 @@ fn is_executable(path: &Path) -> bool {
 // Function to execute an executable by name
 fn run_executable(name: &str) -> Result<ExitStatus, std::io::Error> {
    Command::new(name).status()
+}
+
+fn find_exe<'a> ( s: & str , executables : &'a Vec <String>) -> Vec<&'a str> {
+    let xx = s;
+    let list : Vec<&str> = executables.iter().map(|xx| xx.as_str()).collect();
+    let res : Vec<(&str, f32)> = fuzzy_search_sorted(xx,&list);
+    for x in res {
+        println!("{} {}",x.0,x.1);
+    }
+    list
 }
