@@ -3,12 +3,12 @@ use std::env;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
 use std::os::unix::fs::PermissionsExt;
-use rust_fuzzy_search::{fuzzy_compare , fuzzy_search,fuzzy_search_sorted};
+use rust_fuzzy_search::fuzzy_search_sorted;
 
 
 fn main() {
 
-   let mut executables:  Vec<String> = get_executables() ; // get all the exes in the system
+   let  executables:  Vec<String> = get_executables() ; // get all the exes in the system
     let mut output_contains : Vec<String> =vec![] ; 
     let mut index : i32 =1 ; 
     let app = app::App::default();
@@ -64,13 +64,15 @@ fn main() {
         // input.set_readonly(true);
         let key  = app::event_key() ;
         if key == enums::Key::Enter && event == Event::KeyDown {
-        if output.size()> 0  {
-        if let Some(text) = output.text(index as i32){
-             if let Ok(status) = run_executable(text.as_str()) {
-                 println!("{}" , status);
-             }
-        }
-             }
+            if output.size()> 0  {
+            if let Some(text) = output.text(index as i32){
+                 // if let Ok(status) = run_executable(format!("{} &",text).as_str()) {
+                     // println!("{}" , status);
+                 // }
+                 Command::new(text.as_str()).spawn();
+            }
+         }
+        app.quit()
         }
         if key == enums::Key::Down && event == Event::KeyDown {
             if index <= output.size()-1 {
@@ -89,19 +91,17 @@ fn main() {
            index =1 ; 
        }
        output.select(index);
-    println!("{}",index);
         false
 
     });
-input.set_callback(move |input| {
-    output_contains.clear();
-    output_clone.clear();
-    output_contains = find_exe(&input.value(), &executables).clone();
-    for out in &output_contains {
-        output_clone.add(out);
-    }
-    println!("{}",index);
-});
+    input.set_callback(move |input| {
+        output_contains.clear();
+        output_clone.clear();
+        output_contains = find_exe(&input.value(), &executables).clone();
+        for out in &output_contains {
+            output_clone.add(out);
+        }
+    });
 
 
     flex.end();
@@ -112,6 +112,8 @@ input.set_callback(move |input| {
 
 
 }
+
+
 fn get_executables ()-> Vec<String> {
     let mut executables:Vec<String> = Vec :: new () ; 
     if let Some(paths) = env::var_os("PATH") {// get the path from the var PATH
@@ -157,8 +159,5 @@ fn run_executable(name: &str) -> Result<ExitStatus, std::io::Error> {
 fn find_exe<'a>(s: &str, executables: &'a Vec<String>) -> Vec<String> {
     let list: Vec<&str> = executables.iter().map(|xx| xx.as_str()).collect();
     let res: Vec<(&str, f32)> = fuzzy_search_sorted(s, &list);
-    // for x in &res {
-    //   //  println!("{} {}", x.0, x.1);
-    // }
     res.iter().filter(|s| s.1 > 0.0).map(|s| s.0.to_string()).collect()
 }
