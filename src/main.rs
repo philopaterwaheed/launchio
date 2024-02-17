@@ -8,7 +8,7 @@ use rust_fuzzy_search::{fuzzy_compare , fuzzy_search,fuzzy_search_sorted};
 
 fn main() {
 
-   let mut executables:Vec<String> = get_executables() ; // get all the exes in the system
+   let mut executables:  Vec<String> = get_executables() ; // get all the exes in the system
     let app = app::App::default();
     // app::set_background_color(3,5,20);
     let mut wind = window::Window::default()
@@ -69,14 +69,16 @@ fn main() {
         false
 
     });
-    input.set_callback( |output_clone| { // the call back when enter is pressed 
-        let x = input.value().clone().as_str();
-        let outs = find_exe(x,&executables);
-        for  out in &outs{
-            output.add(out);
-        }
+    let mut output_contains : Vec<String> =vec![] ; 
+input.set_callback(move |input| {
+    output_contains.clear();
+    output_clone.clear();
+    output_contains =  find_exe(&input.value(), &executables).clone();
+    for out in &output_contains {
+        output_clone.add(out);
+    }
 
-    });
+});
 
 
     flex.end();
@@ -129,12 +131,11 @@ fn run_executable(name: &str) -> Result<ExitStatus, std::io::Error> {
    Command::new(name).status()
 }
 
-fn find_exe<'a> ( s: & str , executables : &'a Vec <String>) -> Vec<&'a str> {
-    let xx = s;
-    let list : Vec<&str> = executables.iter().map(|xx| xx.as_str()).collect();
-    let res : Vec<(&str, f32)> = fuzzy_search_sorted(xx,&list);
-    for x in res {
-        println!("{} {}",x.0,x.1);
+fn find_exe<'a>(s: &str, executables: &'a Vec<String>) -> Vec<String> {
+    let list: Vec<&str> = executables.iter().map(|xx| xx.as_str()).collect();
+    let res: Vec<(&str, f32)> = fuzzy_search_sorted(s, &list);
+    for x in &res {
+        println!("{} {}", x.0, x.1);
     }
-    list
+    res.iter().filter(|s| s.1 > 0.0).map(|s| s.0.to_string()).collect()
 }
