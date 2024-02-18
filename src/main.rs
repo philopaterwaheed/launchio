@@ -38,7 +38,7 @@ fn main() {
    let inside_flex = group::Flex::default().with_size(400, 400).row();
 
 
-   if let  Ok(mut image) = image::JpegImage::load("./nar.jpg"){
+   if let  Ok(mut image) = image::JpegImage::load(format!("{}/nar.jpg",conf_dir)){
        let mut frame = Frame::default().size_of_parent();
        frame.set_frame(FrameType::OFlatFrame); // Remove the frame around the image
        image.scale(600, 200, true, true);
@@ -48,7 +48,7 @@ fn main() {
    
    let mut _app_name_label = frame::Frame::default().with_label("launchio\nby philo").set_color(Color::from_rgb(0,0,0));
 
-   if let  Ok(mut imagee) = image::JpegImage::load("./sas.jpg"){
+   if let  Ok(mut imagee) = image::JpegImage::load(format!("{}/sas.jpg",conf_dir)){
        let mut frame = Frame::default().with_size(560, 260).with_pos(0,0);
        frame.set_frame(FrameType::OFlatFrame); // Remove the frame around the image
        imagee.scale(400, 200, true, true);
